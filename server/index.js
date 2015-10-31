@@ -3,7 +3,9 @@ var falcorExpress = require('falcor-express');
 var Router = require('falcor-router');
 
 var express = require('express');
+var cors = require('cors');
 var app = express();
+app.use(cors({ origin: 'http://localhost:8080', credentials: true }));
 
 var logBind = console.log.bind(console);
 
