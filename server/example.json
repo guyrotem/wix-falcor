@@ -1,0 +1,61 @@
+{
+	"userSites": [
+		{
+			"metasiteId": "1234",
+			"siteName": "moses-station",
+			"connectedDomains": [
+				{
+					"domainName": "moses.co.il",
+					"domainGuid": "",
+					"mailboxInfo": {
+						"numberOfMailboxes": 4,
+						"userAccounts": [
+							{
+								"account": "moses.co.il",
+								"isPrimary": true
+							},
+							{
+								"account": "moses.co.il",
+								"isPrimary": false
+							}
+						],
+
+					},
+					"isPrimary": true
+				},
+				{
+					"domainName": "moses-station.com",
+					"domainGuid": "",
+					"mailboxInfo": {
+						"numberOfMailboxes": 0,
+						"userAccounts": []
+					},
+					"isPrimary": false
+				},
+				{
+					"domainName": "moses-burgers.co.uk",
+					"domainGuid": "",
+					"mailboxInfo": {
+						"numberOfMailboxes": 0,
+						"userAccounts": []
+					},
+					"isPrimary": false
+				}			]
+		},
+		{
+			"metasiteId": "5678",
+			"siteName": "agadir",
+			"connectedDomains": [
+				{
+					"domainName": "agadir.guru",
+					"domainGuid": "",
+					"mailboxInfo": {
+						"numberOfMailboxes": 0,
+						"userAccounts": [],
+					},
+					"isPrimary": true
+				}
+			]
+		}
+	]
+}
