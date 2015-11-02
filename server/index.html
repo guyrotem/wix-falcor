@@ -6,24 +6,18 @@
     <script>
       var model = new falcor.Model({source: new falcor.HttpDataSource('/model.json') });
 
-      // retrieve the "greeting" key from the root of the Virtual JSON resource
-      // model.
-      //   get("userSites[0..4].domainData[0..4].domainName").
-      //   then(function(response) {
-      //     document.write(response.json.wixFood);
-      //   });
-
       model.
-        get("userSites[0..2].connectedDomains[0..2].mailboxInfo.numberOfMailboxes").
+        get("userSites[0..2].connectedDomains[0..2].mailboxInfo.hasSetup").
         then(function(response) {
           document.write(JSON.stringify(response.json.userSites));
         });
 
-      // model.
-      //   get('userSites[0..2]["metasiteId", "connectedDomains", "siteName"]').
-      //   then(function(response) {
-      //     document.write(JSON.stringify(response.json.userSites[0].connectedDomains));
-      //   });
+      model.
+        get("userSites[0..2].connectedDomains[0..2].mailboxInfo.userAccounts[0..1].userName").
+        then(function(response) {
+          document.write(JSON.stringify(response.json.userSites));
+        });
+
     </script>
   </head>
   <body>

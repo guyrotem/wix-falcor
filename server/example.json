@@ -9,14 +9,15 @@
 					"domainGuid": "",
 					"mailboxInfo": {
 						"numberOfMailboxes": 4,
+						"hasSetup": true,
 						"userAccounts": [
 							{
-								"account": "moses.co.il",
-								"isPrimary": true
+								"userName": "musa",
+								"isAdmin": true
 							},
 							{
-								"account": "moses.co.il",
-								"isPrimary": false
+								"userName": "moses.co.il",
+								"isAdmin": false
 							}
 						],
 
@@ -28,7 +29,8 @@
 					"domainGuid": "",
 					"mailboxInfo": {
 						"numberOfMailboxes": 0,
-						"userAccounts": []
+						"userAccounts": [],
+						"hasSetup": false,
 					},
 					"isPrimary": false
 				},
@@ -37,7 +39,8 @@
 					"domainGuid": "",
 					"mailboxInfo": {
 						"numberOfMailboxes": 0,
-						"userAccounts": []
+						"userAccounts": [],
+						"hasSetup": false
 					},
 					"isPrimary": false
 				}			]
@@ -52,6 +55,7 @@
 					"mailboxInfo": {
 						"numberOfMailboxes": 0,
 						"userAccounts": [],
+						"hasSetup": false
 					},
 					"isPrimary": true
 				}

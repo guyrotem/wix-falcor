@@ -9,9 +9,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.7.1",
     "express": "^4.13.3",
     "falcor-express": "^0.1.2",
-    "falcor-router": "^0.2.11"
+    "falcor-router": "^0.2.11",
+    "q": "^1.4.1"
   },
   "devDependencies": {},
   "keywords": []
