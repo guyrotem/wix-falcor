@@ -12,8 +12,8 @@ app.use(cors({ origin: 'http://localhost:8080', credentials: true }));
 var logBind = console.log.bind(console);
 
 var _metaSiteData = require('./data/sites-data.js');
-var domainsData = require('./data/domains-data.js');
-var mailboxesData = require('./data/mailboxes-data.js');
+var _domainsData = require('./data/domains-data.js');
+var _mailboxesData = require('./data/mailboxes-data.js');
 var _googleMailboxesData = require('./data/google-mailboxes-data.js');
 
 app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
@@ -22,7 +22,7 @@ app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
     {
       route: 'userSites[{integers:siteIndices}]["metasiteId", "siteName"]',
       get: function(pathSet) {
-        return getMetaSiteData()
+        return getMetaSiteDataPromise()
         .then(function (metaSiteData) {
           return pathSet.siteIndices.map(function (index) {
             var returnValue = {};
@@ -40,93 +40,119 @@ app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
     {
       route: 'userSites[{integers:siteIndices}].connectedDomains[{integers:domainIndices}]["domainName", "domainGuid"]', 
       get: function(pathSet) {
-        return getMetaSiteData()
+        return getMetaSiteDataPromise()
         .then(function (metaSiteData) {
-          var siteResults = [];
-          pathSet.siteIndices.forEach(function (siteIndex) {
-            getAllConnectedDomains(metaSiteData[siteIndex])
-            .forEach(function (siteDomain, domainIndex) {
-              pathSet[4].forEach(function (domainKey) {
-                siteResults.push({
-                  path: ['userSites', siteIndex, 'connectedDomains', domainIndex, domainKey],
-                  value: siteDomain[domainKey]
-                });              
+          return getDomainsDataPromise()
+          .then(function (domainsData) {
+
+            var siteResults = [];
+            pathSet.siteIndices.forEach(function (siteIndex) {
+              getAllConnectedDomains(metaSiteData[siteIndex], domainsData)
+              .forEach(function (siteDomain, domainIndex) {
+                pathSet[4].forEach(function (domainKey) {
+                  siteResults.push({
+                    path: ['userSites', siteIndex, 'connectedDomains', domainIndex, domainKey],
+                    value: siteDomain[domainKey]
+                  });              
+                });
               });
             });
+            return siteResults;
           });
-          return siteResults;
         });
       }
     },
     {
       route: 'userSites[{integers:siteIndices}].connectedDomains[{integers:domainIndices}].mailboxInfo["numberOfMailboxes", "hasSetup"]', 
       get: function(pathSet) {
-        return getMetaSiteData()
+        return getMetaSiteDataPromise()
         .then(function (metaSiteData) {
-          var results = [];
-          pathSet.siteIndices.forEach(function (siteIndex) {
-            getAllConnectedDomains(metaSiteData[siteIndex])
-              .forEach(function (siteDomain, domainIndex) {
-                var domainMailboxesData = mailboxesData.filter(function (mailboxData) {
-                  return mailboxData.domainName === siteDomain.domainName;
-                });
-                pathSet[5].forEach(function (mailboxKey) {
-                  results.push({
-                    path: ['userSites', siteIndex, 'connectedDomains', domainIndex, 'mailboxInfo', mailboxKey],
-                    value: domainMailboxesData.length > 0 ? domainMailboxesData[0][mailboxKey] : 0
+          return getDomainsDataPromise()
+          .then(function (domainsData) {
+            return getMailboxesDataPromise()
+            .then(function (mailboxesData) {
+              var results = [];
+              pathSet.siteIndices.forEach(function (siteIndex) {
+                getAllConnectedDomains(metaSiteData[siteIndex], domainsData)
+                  .forEach(function (siteDomain, domainIndex) {
+                    var domainMailboxesData = mailboxesData.filter(function (mailboxData) {
+                      return mailboxData.domainName === siteDomain.domainName;
+                    });
+                    pathSet[5].forEach(function (mailboxKey) {
+                      results.push({
+                        path: ['userSites', siteIndex, 'connectedDomains', domainIndex, 'mailboxInfo', mailboxKey],
+                        value: domainMailboxesData.length > 0 ? domainMailboxesData[0][mailboxKey] : 0
+                      });
+                    });
                   });
-                });
               });
+              return results;
+            });
           });
-          return results;
         });
       }
     },
     {
       route: 'userSites[{integers:siteIndices}].connectedDomains[{integers:domainIndices}].mailboxInfo.userAccounts[{integers:googleMailboxIndices}]["userName", "isAdmin"]', 
       get: function(pathSet) {
-        return getMetaSiteData()
+        return getMetaSiteDataPromise()
         .then(function (metaSiteData) {
-          var googleMailboxDataPromisesArray = pathSet.siteIndices.map(function (siteIndex) {
-            var metaSiteGooglePromises = getAllConnectedDomains(metaSiteData[siteIndex])
-            .map(function (connectedDomain) {
-                return getGoogleMailboxData(connectedDomain.domainName);
+          return getDomainsDataPromise()
+          .then(function (domainsData) {
+
+            var googleMailboxDataPromisesArray = pathSet.siteIndices.map(function (siteIndex) {
+              var metaSiteGooglePromises = getAllConnectedDomains(metaSiteData[siteIndex], domainsData)
+              .map(function (connectedDomain) {
+                  return getGoogleMailboxDataPromise(connectedDomain.domainName);
+              });
+              return q.all(metaSiteGooglePromises);
             });
-            return q.all(metaSiteGooglePromises);
-          });
-          return q.all(googleMailboxDataPromisesArray)
-          .then(function (googleMailboxDataResolvedArray) {
-            var results = [];
-            pathSet.siteIndices.forEach(function (siteIndex) {
-              getAllConnectedDomains(metaSiteData[siteIndex])
-              .forEach(function (siteDomain, domainIndex) {
-                pathSet.googleMailboxIndices.forEach(function (googleMailboxIndex) {
-                  pathSet[7].forEach(function (googleMailboxKey) {
-                    var googleMailboxData = googleMailboxDataResolvedArray[siteIndex][domainIndex];
-                    if (googleMailboxData[googleMailboxIndex] && googleMailboxData[googleMailboxIndex][googleMailboxKey]) {                    
-                      results.push({
-                        path: ['userSites', siteIndex, 'connectedDomains', domainIndex, 'mailboxInfo', 'userAccounts', googleMailboxIndex, googleMailboxKey],
-                        value: googleMailboxData[googleMailboxIndex][googleMailboxKey]
-                      });
-                    }
+            return q.all(googleMailboxDataPromisesArray)
+            .then(function (googleMailboxDataResolvedArray) {
+              var results = [];
+              pathSet.siteIndices.forEach(function (siteIndex) {
+                getAllConnectedDomains(metaSiteData[siteIndex], domainsData)
+                .forEach(function (siteDomain, domainIndex) {
+                  pathSet.googleMailboxIndices.forEach(function (googleMailboxIndex) {
+                    pathSet[7].forEach(function (googleMailboxKey) {
+                      var googleMailboxData = googleMailboxDataResolvedArray[siteIndex][domainIndex];
+                      if (googleMailboxData[googleMailboxIndex] && googleMailboxData[googleMailboxIndex][googleMailboxKey]) {                    
+                        results.push({
+                          path: ['userSites', siteIndex, 'connectedDomains', domainIndex, 'mailboxInfo', 'userAccounts', googleMailboxIndex, googleMailboxKey],
+                          value: googleMailboxData[googleMailboxIndex][googleMailboxKey]
+                        });
+                      }
+                    });
                   });
                 });
               });
+              return results;
             });
-            return results;
           });
         });
       }
     }]);
   }));
 
-function getMetaSiteData() {
+function getMetaSiteDataPromise() {
   var deferred = q.defer();
   deferred.resolve(_metaSiteData);
   return deferred.promise;
 }
 
-function getAllConnectedDomains(siteInfo) {
+function getDomainsDataPromise() {
+  var deferred = q.defer();
+  deferred.resolve(_domainsData);
+  return deferred.promise;
+}
+
+function getMailboxesDataPromise() {
+  var deferred = q.defer();
+  deferred.resolve(_mailboxesData);
+  return deferred.promise; 
+}
+
+function getAllConnectedDomains(siteInfo, domainsData) {
   var primaryDomainName = siteInfo.connectedDomain;
   return primaryDomainName ? domainsData.filter(function (domainData) {
     return domainData.domainName === primaryDomainName ||
@@ -134,7 +160,7 @@ function getAllConnectedDomains(siteInfo) {
   }) : [];
 }
 
-function getGoogleMailboxData(domainName) {
+function getGoogleMailboxDataPromise(domainName) {
   var deferred = q.defer();
   var result = _googleMailboxesData.filter(function (googleData) {
     return googleData.domainName === domainName;

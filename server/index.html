@@ -2,20 +2,21 @@
 <html>
   <head>
     <!-- Do _not_  rely on this URL in production. Use only during development.  -->
-    <script src="https://netflix.github.io/falcor/build/falcor.browser.js"></script>
+    <!--<script src="https://netflix.github.io/falcor/build/falcor.browser.js"></script>-->
+    <script src="js/falcor.browser.js"></script>
     <script>
       var model = new falcor.Model({source: new falcor.HttpDataSource('/model.json') });
 
       model.
         get("userSites[0..2].connectedDomains[0..2].mailboxInfo.hasSetup").
         then(function(response) {
-          document.write(JSON.stringify(response.json.userSites));
+          document.write(JSON.stringify(response.json.userSites[1].connectedDomains[0].mailboxInfo));
         });
 
       model.
         get("userSites[0..2].connectedDomains[0..2].mailboxInfo.userAccounts[0..1].userName").
         then(function(response) {
-          document.write(JSON.stringify(response.json.userSites));
+          document.write(JSON.stringify(response.json.userSites[0].connectedDomains[0].mailboxInfo.userAccounts));
         });
 
     </script>
