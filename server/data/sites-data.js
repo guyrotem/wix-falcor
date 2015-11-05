@@ -1,4 +1,6 @@
-module.exports = [
+var q = require('q');
+
+var metaSiteData = [
   {
     metasiteId: 's0',
     siteName: 'name1',
@@ -15,3 +17,9 @@ module.exports = [
     connectedDomain: null
   }
 ];
+
+module.exports = function () {
+  var deferred = q.defer();
+  deferred.resolve(metaSiteData);
+  return deferred.promise;
+}

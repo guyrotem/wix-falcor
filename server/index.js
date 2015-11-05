@@ -11,18 +11,19 @@ app.use(cors({ origin: 'http://localhost:8080', credentials: true }));
 
 var logBind = console.log.bind(console);
 
-var _metaSiteData = require('./data/sites-data.js');
-var _domainsData = require('./data/domains-data.js');
-var _mailboxesData = require('./data/mailboxes-data.js');
-var _googleMailboxesData = require('./data/google-mailboxes-data.js');
+var getMetaSiteDataAsync = require('./data/sites-data.js');
+var getDomainsDataAsync = require('./data/domains-data.js');
+var getMailboxesDataAsync = require('./data/mailboxes-data.js');
+var getGoogleMailboxDataAsync = require('./data/google-mailboxes-data.js');
 
 app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
+  console.log('!!!');
   // create a Virtual JSON resource with user sites
   return new Router([
     {
       route: 'userSites[{integers:siteIndices}]["metasiteId", "siteName"]',
       get: function(pathSet) {
-        return getMetaSiteDataPromise()
+        return getMetaSiteDataAsync()
         .then(function (metaSiteData) {
           return pathSet.siteIndices.map(function (index) {
             var returnValue = {};
@@ -40,9 +41,9 @@ app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
     {
       route: 'userSites[{integers:siteIndices}].connectedDomains[{integers:domainIndices}]["domainName", "domainGuid"]', 
       get: function(pathSet) {
-        return getMetaSiteDataPromise()
+        return getMetaSiteDataAsync()
         .then(function (metaSiteData) {
-          return getDomainsDataPromise()
+          return getDomainsDataAsync()
           .then(function (domainsData) {
 
             var siteResults = [];
@@ -65,11 +66,11 @@ app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
     {
       route: 'userSites[{integers:siteIndices}].connectedDomains[{integers:domainIndices}].mailboxInfo["numberOfMailboxes", "hasSetup"]', 
       get: function(pathSet) {
-        return getMetaSiteDataPromise()
+        return getMetaSiteDataAsync()
         .then(function (metaSiteData) {
-          return getDomainsDataPromise()
+          return getDomainsDataAsync()
           .then(function (domainsData) {
-            return getMailboxesDataPromise()
+            return getMailboxesDataAsync()
             .then(function (mailboxesData) {
               var results = [];
               pathSet.siteIndices.forEach(function (siteIndex) {
@@ -95,15 +96,14 @@ app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
     {
       route: 'userSites[{integers:siteIndices}].connectedDomains[{integers:domainIndices}].mailboxInfo.userAccounts[{integers:googleMailboxIndices}]["userName", "isAdmin"]', 
       get: function(pathSet) {
-        return getMetaSiteDataPromise()
+        return getMetaSiteDataAsync()
         .then(function (metaSiteData) {
-          return getDomainsDataPromise()
+          return getDomainsDataAsync()
           .then(function (domainsData) {
-
             var googleMailboxDataPromisesArray = pathSet.siteIndices.map(function (siteIndex) {
               var metaSiteGooglePromises = getAllConnectedDomains(metaSiteData[siteIndex], domainsData)
               .map(function (connectedDomain) {
-                  return getGoogleMailboxDataPromise(connectedDomain.domainName);
+                  return getGoogleMailboxDataAsync(connectedDomain.domainName);
               });
               return q.all(metaSiteGooglePromises);
             });
@@ -134,39 +134,12 @@ app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
     }]);
   }));
 
-function getMetaSiteDataPromise() {
-  var deferred = q.defer();
-  deferred.resolve(_metaSiteData);
-  return deferred.promise;
-}
-
-function getDomainsDataPromise() {
-  var deferred = q.defer();
-  deferred.resolve(_domainsData);
-  return deferred.promise;
-}
-
-function getMailboxesDataPromise() {
-  var deferred = q.defer();
-  deferred.resolve(_mailboxesData);
-  return deferred.promise; 
-}
-
 function getAllConnectedDomains(siteInfo, domainsData) {
   var primaryDomainName = siteInfo.connectedDomain;
   return primaryDomainName ? domainsData.filter(function (domainData) {
     return domainData.domainName === primaryDomainName ||
     domainData.redirectDomain === primaryDomainName;
   }) : [];
-}
-
-function getGoogleMailboxDataPromise(domainName) {
-  var deferred = q.defer();
-  var result = _googleMailboxesData.filter(function (googleData) {
-    return googleData.domainName === domainName;
-  });
-  deferred.resolve(result.length > 0 ? result[0].userAccounts : []);
-  return deferred.promise;
 }
 
 // serve static files from current directory

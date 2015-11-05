@@ -1,4 +1,6 @@
-module.exports = [
+var q = require('q');
+
+var domainsData = [
   {
     domainName: 'moses.co.il',
     domainGuid: 'd1',
@@ -15,3 +17,9 @@ module.exports = [
     redirectDomain: 'moses.co.il'
   }
 ];
+
+module.exports = function () {
+  var deferred = q.defer();
+  deferred.resolve(domainsData);
+  return deferred.promise;
+}

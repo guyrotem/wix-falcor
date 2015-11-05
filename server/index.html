@@ -8,7 +8,7 @@
       var model = new falcor.Model({source: new falcor.HttpDataSource('/model.json') });
 
       model.
-        get("userSites[0..2].connectedDomains[0..2].mailboxInfo.hasSetup").
+        get("userSites[0..1].connectedDomains[0..2].mailboxInfo.hasSetup").
         then(function(response) {
           document.write(JSON.stringify(response.json.userSites[1].connectedDomains[0].mailboxInfo));
         });
