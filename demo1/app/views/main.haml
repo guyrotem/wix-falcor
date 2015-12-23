@@ -1,9 +1,11 @@
-.hero-unit(ng-controller="MainController as main")
-  %h1 Wix Falcor
-  %div {{ main.getFalcorModelValue() | async }}
+.falcor(ng-controller="MainController as main")
 
-  .site-container(ng-repeat="siteItem in (main.traverseVirtualJson('userSites[3..5].connectedDomains[0..2].mailboxInfo.userAccounts[0..1].userName') | async)")
-    %div {{siteItem}}
+  .hero-unit
+    %h1 Wix Falcor
 
-  .input-container
-    %input(ng-model="main.query" style="width: 320px")
+    .input-container
+      %input(ng-model="main.query")
+      %button(ng-click="main.init()") falcor
+
+  %pre.output
+    {{main.result}}

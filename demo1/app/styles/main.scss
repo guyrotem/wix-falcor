@@ -17,38 +17,50 @@ $bg-color: $wix-gray-lightest;
 
 .container {
   margin: auto;
-  width: 300px;
+}
+
+.falcor {
+  display: flex;
+  justify-content: space-around;
 }
 
 .hero-unit {
-  position: absolute;
-  width: 360px;
   font-family: $wix-helvetica-55;
   font-size: 18px;
   font-weight: 200;
   line-height: 30px;
   background-color: $bg-color;
   border-radius: 6px;
-  padding: 60px;
+  padding: 30px 0 60px 0;
+  text-align: center;
 
   h1 {
     font-family: $wix-helvetica-75;
     font-size: 60px;
     line-height: 1;
     letter-spacing: -1px;
+    margin: 50px;
   }
 
-  .logo-on-header {
-    font-size: 49px;
-    position: relative;
-    top: -8px;
-  }
+  .input-container {
+    input {
+      width: 100%;
+      border: none;
+      height: 20px;
+      padding-top: 6px;
 
-  .wix-style-link {
-    &:before {
-      position: relative;
-      left: -8px;
+      &:focus {
+        outline: none;
+      }
     }
   }
+}
+
+.output {
+  background: black;
+  color: limegreen;
+  padding: 15px 10px;
+  min-width: 600px;
+  border-radius: 6px;
 }
 

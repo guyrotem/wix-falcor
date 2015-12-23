@@ -1,4 +1,3 @@
-// index.js
 var falcorExpress = require('falcor-express');
 var Router = require('falcor-router');
 
@@ -6,6 +5,8 @@ var express = require('express');
 var q = require('q');
 var cors = require('cors');
 var app = express();
+var jsonGraph = require('falcor-json-graph');
+var $ref = jsonGraph.ref;
 
 app.use(cors({ origin: 'http://localhost:8080', credentials: true }));
 
@@ -17,12 +18,21 @@ var getMailboxesDataAsync = require('./data/mailboxes-data.js');
 var getGoogleMailboxDataAsync = require('./data/google-mailboxes-data.js');
 
 app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
-  console.log('!!!');
+  console.log(req.query);
   // create a Virtual JSON resource with user sites
   return new Router([
     {
+      route: 'my_sites',
+      get: function () {
+        return [{
+          path: ['my_sites'],
+          value: $ref('userSites[1]')
+        }];
+      }
+    },
+    {
       route: 'userSites[{integers:siteIndices}]["metasiteId", "siteName"]',
-      get: function(pathSet) {
+      get: function (pathSet) {
         return getMetaSiteDataAsync()
         .then(function (metaSiteData) {
           return pathSet.siteIndices.map(function (index) {
@@ -40,7 +50,7 @@ app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
     },
     {
       route: 'userSites[{integers:siteIndices}].connectedDomains[{integers:domainIndices}]["domainName", "domainGuid"]', 
-      get: function(pathSet) {
+      get: function (pathSet) {
         return getMetaSiteDataAsync()
         .then(function (metaSiteData) {
           return getDomainsDataAsync()
@@ -65,7 +75,7 @@ app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
     },
     {
       route: 'userSites[{integers:siteIndices}].connectedDomains[{integers:domainIndices}].mailboxInfo["numberOfMailboxes", "hasSetup"]', 
-      get: function(pathSet) {
+      get: function (pathSet) {
         return getMetaSiteDataAsync()
         .then(function (metaSiteData) {
           return getDomainsDataAsync()
@@ -95,44 +105,45 @@ app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
     },
     {
       route: 'userSites[{integers:siteIndices}].connectedDomains[{integers:domainIndices}].mailboxInfo.userAccounts[{integers:googleMailboxIndices}]["userName", "isAdmin"]', 
-      get: function(pathSet) {
+      get: function (pathSet) {
         return getMetaSiteDataAsync()
         .then(function (metaSiteData) {
           return getDomainsDataAsync()
-          .then(function (domainsData) {
-            var googleMailboxDataPromisesArray = pathSet.siteIndices.map(function (siteIndex) {
-              var metaSiteGooglePromises = getAllConnectedDomains(metaSiteData[siteIndex], domainsData)
-              .map(function (connectedDomain) {
-                  return getGoogleMailboxDataAsync(connectedDomain.domainName);
+            .then(function (domainsData) {
+              var googleMailboxDataPromisesArray = pathSet.siteIndices.map(function (siteIndex) {
+                var metaSiteGooglePromises = getAllConnectedDomains(metaSiteData[siteIndex], domainsData)
+                  .map(function (connectedDomain) {
+                    return getGoogleMailboxDataAsync(connectedDomain.domainName);
+                  });
+                return q.all(metaSiteGooglePromises);
               });
-              return q.all(metaSiteGooglePromises);
-            });
-            return q.all(googleMailboxDataPromisesArray)
-            .then(function (googleMailboxDataResolvedArray) {
-              var results = [];
-              pathSet.siteIndices.forEach(function (siteIndex) {
-                getAllConnectedDomains(metaSiteData[siteIndex], domainsData)
-                .forEach(function (siteDomain, domainIndex) {
-                  pathSet.googleMailboxIndices.forEach(function (googleMailboxIndex) {
-                    pathSet[7].forEach(function (googleMailboxKey) {
-                      var googleMailboxData = googleMailboxDataResolvedArray[siteIndex][domainIndex];
-                      if (googleMailboxData[googleMailboxIndex] && googleMailboxData[googleMailboxIndex][googleMailboxKey]) {                    
-                        results.push({
-                          path: ['userSites', siteIndex, 'connectedDomains', domainIndex, 'mailboxInfo', 'userAccounts', googleMailboxIndex, googleMailboxKey],
-                          value: googleMailboxData[googleMailboxIndex][googleMailboxKey]
+              return q.all(googleMailboxDataPromisesArray)
+                .then(function (googleMailboxDataResolvedArray) {
+                  var results = [];
+                  pathSet.siteIndices.forEach(function (siteIndex) {
+                    getAllConnectedDomains(metaSiteData[siteIndex], domainsData)
+                    .forEach(function (siteDomain, domainIndex) {
+                      pathSet.googleMailboxIndices.forEach(function (googleMailboxIndex) {
+                        pathSet[7].forEach(function (googleMailboxKey) {
+                          console.log(googleMailboxKey);
+                          var googleMailboxData = googleMailboxDataResolvedArray[siteIndex][domainIndex];
+                          if (googleMailboxData[googleMailboxIndex] && googleMailboxData[googleMailboxIndex][googleMailboxKey]) {
+                            results.push({
+                              path: ['userSites', siteIndex, 'connectedDomains', domainIndex, 'mailboxInfo', 'userAccounts', googleMailboxIndex, googleMailboxKey],
+                              value: googleMailboxData[googleMailboxIndex][googleMailboxKey]
+                            });
+                          }
                         });
-                      }
+                      });
                     });
                   });
+                  return results;
                 });
-              });
-              return results;
             });
-          });
         });
       }
     }]);
-  }));
+}));
 
 function getAllConnectedDomains(siteInfo, domainsData) {
   var primaryDomainName = siteInfo.connectedDomain;
