@@ -4,8 +4,8 @@
     %h1 Wix Falcor
 
     .input-container
-      %input(ng-model="main.query")
-      %button(ng-click="main.init()") falcor
+      %input(ng-model="main.query" ng-keypress="main.watchInput($event)")
+      %button(ng-click="main.fetch()") falcor
 
   %pre.output
     {{main.result}}
