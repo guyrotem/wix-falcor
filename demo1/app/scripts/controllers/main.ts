@@ -12,14 +12,16 @@ class MainController {
 
   /* @ngInject */
   constructor(private $q: ng.IQService, private $timeout,
-  private wixFalcorUtils: WixFalcorUtils) {
+              private wixFalcorUtils: WixFalcorUtils) {
+
     this.query = '';
     this.model = new falcor.Model({source: new falcor.HttpDataSource('/_api/model.json') });
+
   }
 
   fetch() {
     // 'userSites[0..3].connectedDomains[0..2].mailboxInfo.userAccounts[0..1].userName'
-    this.model.get(this.query)
+    this.model.get.apply(this.model, this.query.split(';'))
       .subscribe((value: any) => {
         this.$timeout(() => {
           this.result = JSON.stringify(value, null , '  ');
