@@ -19,6 +19,7 @@ var getGoogleMailboxDataAsync = require('./data/google-mailboxes-data.js');
 
 app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
   console.log(req.query);
+
   // create a Virtual JSON resource with user sites
   return new Router([
     {
@@ -49,7 +50,7 @@ app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
       }
     },
     {
-      route: 'userSites[{integers:siteIndices}].connectedDomains[{integers:domainIndices}]["domainName", "domainGuid"]', 
+      route: 'userSites[{integers:siteIndices}].connectedDomains[{integers:domainIndices}]["domainName", "domainGuid"]',
       get: function (pathSet) {
         return getMetaSiteDataAsync()
         .then(function (metaSiteData) {
@@ -64,7 +65,7 @@ app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
                   siteResults.push({
                     path: ['userSites', siteIndex, 'connectedDomains', domainIndex, domainKey],
                     value: siteDomain[domainKey]
-                  });              
+                  });
                 });
               });
             });
@@ -74,7 +75,7 @@ app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
       }
     },
     {
-      route: 'userSites[{integers:siteIndices}].connectedDomains[{integers:domainIndices}].mailboxInfo["numberOfMailboxes", "hasSetup"]', 
+      route: 'userSites[{integers:siteIndices}].connectedDomains[{integers:domainIndices}].mailboxInfo["numberOfMailboxes", "hasSetup"]',
       get: function (pathSet) {
         return getMetaSiteDataAsync()
         .then(function (metaSiteData) {
@@ -104,7 +105,7 @@ app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
       }
     },
     {
-      route: 'userSites[{integers:siteIndices}].connectedDomains[{integers:domainIndices}].mailboxInfo.userAccounts[{integers:googleMailboxIndices}]["userName", "isAdmin"]', 
+      route: 'userSites[{integers:siteIndices}].connectedDomains[{integers:domainIndices}].mailboxInfo.userAccounts[{integers:googleMailboxIndices}]["userName", "isAdmin"]',
       get: function (pathSet) {
         return getMetaSiteDataAsync()
         .then(function (metaSiteData) {

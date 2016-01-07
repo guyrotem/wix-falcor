@@ -11,8 +11,7 @@ class MainController {
   public result: any;
 
   /* @ngInject */
-  constructor(private $q: ng.IQService, private $timeout,
-              private wixFalcorUtils: WixFalcorUtils) {
+  constructor(private $q: ng.IQService, private $timeout) {
 
     this.query = '';
     this.model = new falcor.Model({source: new falcor.HttpDataSource('/_api/model.json') });
