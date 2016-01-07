@@ -20,7 +20,7 @@ class MainController {
   }
 
   fetch() {
-    // 'userSites[0..3].connectedDomains[0..2].mailboxInfo.userAccounts[0..1].userName'
+    // userSites[0..2].connectedDomains[0..2].mailboxInfo.userAccounts[0].userName
     this.model.get.apply(this.model, this.query.split(';'))
       .subscribe((value: any) => {
         this.$timeout(() => {

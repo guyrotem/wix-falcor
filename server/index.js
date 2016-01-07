@@ -22,11 +22,11 @@ app.use('/model.json', falcorExpress.dataSourceRoute(function (req, res) {
   // create a Virtual JSON resource with user sites
   return new Router([
     {
-      route: 'my_sites',
+      route: 'my_site',
       get: function () {
         return [{
-          path: ['my_sites'],
-          value: $ref('userSites[1]')
+          path: ['my_site'],
+          value: $ref('userSites[0]')
         }];
       }
     },
